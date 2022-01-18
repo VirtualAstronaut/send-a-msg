@@ -18,7 +18,6 @@ class _MainScreenState extends State<MainScreen> {
   static final TextEditingController msgController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   List<bool> selectedButtonsValues = [false, false];
-  String msg = "";
   @override
   void initState() {
     super.initState();
@@ -66,7 +65,10 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(right: 8.0),
-                    child: Text('Formatting'),
+                    child: Text(
+                      'Formatting',
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                   ToggleButtons(
                       color: Colors.black,
@@ -78,24 +80,22 @@ class _MainScreenState extends State<MainScreen> {
                       onPressed: (int index) {
                         selectedButtonsValues[index] =
                             !selectedButtonsValues[index];
-                        msg = msgController.text;
                         if (selectedButtonsValues[0]) {
-                          msg = "*" + msg + "*";
-                        } else {
-                          if (RegExp(r"^[*].*[*]$").hasMatch(msg) ||
-                              RegExp(r"^.[*].*[*].$").hasMatch(msg)) {
-                            msg = msg.replaceAll("*", "");
+                          if (!isFormatted("*")) {
+                            msgController.text = "*" + msgController.text + "*";
                           }
+                        } else {
+                          msgController.text =
+                              msgController.text.replaceAll("*", "");
                         }
                         if (selectedButtonsValues[1]) {
-                          msg = "_" + msg + "_";
-                        } else {
-                          if (RegExp(r"^[_].*[_]$").hasMatch(msg) ||
-                              RegExp(r"^.[_].*[_].$").hasMatch(msg)) {
-                            msg = msg.replaceAll("_", "");
+                          if (!isFormatted("_")) {
+                            msgController.text = "_" + msgController.text + "_";
                           }
+                        } else {
+                          msgController.text =
+                              msgController.text.replaceAll("_", "");
                         }
-
                         setState(() {});
                       },
                       children: const [
@@ -115,11 +115,10 @@ class _MainScreenState extends State<MainScreen> {
                 text: 'Open WhatsApp',
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
-                    msg = msg.replaceAll(" ", "%20");
                     if (await canLaunch(
                         'https://wa.me/${numberController.text}')) {
                       await launch(
-                          'https://wa.me/${numberController.text}?text=$msg');
+                          'https://wa.me/${numberController.text}?text=${msgController.text}');
                     }
                   }
                 },
@@ -132,5 +131,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  bool isFormatted(String char) {
+    return RegExp("^[$char].*[$char]\$").hasMatch(msgController.text) ||
+        RegExp("^.[$char].*[$char].\$").hasMatch(msgController.text);
   }
 }
